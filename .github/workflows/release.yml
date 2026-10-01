@@ -1,0 +1,115 @@
+# Builds the downloadable apps and publishes them as a GitHub Release.
+# Trigger: push a version tag, e.g.
+#   git tag v1.0.0
+#   git push origin v1.0.0
+# Result: https://github.com/<you>/<repo>/releases/latest with
+#   MissionImpossible-Setup.exe  (Windows installer)
+#   MissionImpossible.apk        (Android app)
+#   MissionImpossible.AppImage   (Linux)
+# The in-game "GET PC APP" / "GET ANDROID APP" buttons download these files.
+name: Release apps
+
+on:
+  push:
+    tags: ['v*']
+    branches: ['ci-apps']       # test builds without publishing a release
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run dist:win
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - uses: actions/upload-artifact@v4
+        with: { name: windows, path: release/MissionImpossible-Setup.exe }
+
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run dist:linux
+      - uses: actions/upload-artifact@v4
+        with: { name: linux, path: release/MissionImpossible.AppImage }
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: 22, cache: npm }
+      - uses: actions/setup-java@v5
+        with: { distribution: temurin, java-version: 21 }
+      - run: npm ci
+      - run: node tools/build-web.mjs
+      - run: npx cap add android
+      - name: Landscape orientation
+        run: |
+          sed -i 's|android:name=".MainActivity"|android:name=".MainActivity"\n            android:screenOrientation="sensorLandscape"|' android/app/src/main/AndroidManifest.xml
+          grep -n screenOrientation android/app/src/main/AndroidManifest.xml
+      - name: App icon
+        run: |
+          # Replace Capacitor's default launcher PNGs with the game icon.
+          command -v identify >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick; }
+          IM=$(command -v magick || command -v convert)
+          for d in android/app/src/main/res/mipmap-*; do
+            [ -f "$d/ic_launcher.png" ] || continue
+            s=$(identify -format '%w' "$d/ic_launcher.png")
+            $IM icons/icon-512.png -resize ${s}x${s} "$d/ic_launcher.png"
+            $IM icons/icon-512.png -resize ${s}x${s} "$d/ic_launcher_round.png"
+            if [ -f "$d/ic_launcher_foreground.png" ]; then
+              f=$(identify -format '%w' "$d/ic_launcher_foreground.png")
+              inner=$(( f * 2 / 3 ))
+              $IM icons/icon-512.png -resize ${inner}x${inner} -background none -gravity center -extent ${f}x${f} "$d/ic_launcher_foreground.png"
+            fi
+          done
+          sed -i 's|<color name="ic_launcher_background">.*</color>|<color name="ic_launcher_background">#03050A</color>|' android/app/src/main/res/values/ic_launcher_background.xml || true
+      - run: npx cap sync android
+      - name: Build APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          set -o pipefail
+          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee ../gradle.log
+      - name: Report Gradle errors
+        if: failure()
+        run: |
+          { grep -A 6 "What went wrong" gradle.log; grep -E "error:|Exception:" gradle.log | grep -v "^s*at "; } | grep -v "^--$" | head -9 | while IFS= read -r l; do echo "::error::$l"; done
+      - run: cp android/app/build/outputs/apk/debug/app-debug.apk MissionImpossible.apk
+      - uses: actions/upload-artifact@v4
+        with: { name: android, path: MissionImpossible.apk }
+
+  publish:
+    needs: [windows, linux, android]
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: out, merge-multiple: true }
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || format('build-{0}', github.run_number) }}
+          name: Mission Impossible ${{ github.ref_type == 'tag' && github.ref_name || format('build {0}', github.run_number) }}
+          make_latest: true
+          files: |
+            out/MissionImpossible-Setup.exe
+            out/MissionImpossible.apk
+            out/MissionImpossible.AppImage
+          body: |
+            **Play in the browser:** https://mahinjaman.github.io/Mission-Impossible/
+
+            - **Windows:** download `MissionImpossible-Setup.exe` and run it. (If Windows SmartScreen appears: More info -> Run anyway.)
+            - **Android:** download `MissionImpossible.apk`, open it and allow "Install unknown apps" for your browser.
+            - **Linux:** download `MissionImpossible.AppImage`, make it executable and run it.
+            - **iPhone / iPad:** open the web link in Safari -> Share -> Add to Home Screen.

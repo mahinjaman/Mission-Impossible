@@ -58,7 +58,8 @@
   <script type="module" src="src/main.js"></script>
   <script>
     // Offline support (installed PWA). Only over http(s); never from file://.
-    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    // not inside the packaged desktop (Electron) / Android (Capacitor) apps: they ship their files
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !/Electron/i.test(navigator.userAgent) && !window.Capacitor) {
       addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
     }
   </script>

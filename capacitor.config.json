@@ -1,0 +1,7 @@
+{
+  "appId": "com.mahinjaman.missionimpossible",
+  "appName": "Mission Impossible",
+  "webDir": "dist",
+  "backgroundColor": "#03050a",
+  "android": { "backgroundColor": "#03050a" }
+}

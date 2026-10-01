@@ -1,13 +1,13 @@
 // Service worker: makes the installed app work offline.
 // Network-first, so a fresh deploy is picked up on the next launch; the cache
 // is only the fallback. Bump VERSION when files are added or removed.
-const VERSION = 'mission-impossible-v2';
+const VERSION = 'mission-impossible-v3';
 const FILES = [
   './', 'index.html', 'style.css', 'manifest.webmanifest',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
   'src/main.js', 'src/physics.js', 'src/player.js', 'src/level.js', 'src/traps.js', 'src/game.js',
   'src/gen.js', 'src/rng.js', 'src/theme.js', 'src/render.js', 'src/fx.js', 'src/hud.js', 'src/ui.js',
-  'src/input.js', 'src/audio.js', 'src/storage.js', 'src/solver.js',
+  'src/input.js', 'src/audio.js', 'src/storage.js', 'src/solver.js', 'src/install.js',
 ];
 
 self.addEventListener('install', e => {

@@ -7,9 +7,21 @@ keycard, reach extraction, and survive whatever the trap matrix throws at you:
 lasers, tripwires, cameras, crushers, mines, fake keycards, fake doors, EMP
 fields, anti-gravity zones... Missions are endless and get steadily nastier.
 
-Pure HTML5 canvas + vanilla ES modules. No dependencies, no build step, no
-asset files: every sound and every note of music is synthesized with Web Audio.
-Installable as an offline PWA.
+Pure HTML5 canvas + vanilla ES modules. No runtime dependencies, no build step,
+no asset files: every sound and every note of music is synthesized with Web Audio.
+
+## Play
+
+| Platform | How |
+| --- | --- |
+| Web (any device) | **https://mahinjaman.github.io/Mission-Impossible/** |
+| Windows | `MissionImpossible-Setup.exe` from the [latest release](https://github.com/mahinjaman/Mission-Impossible/releases/latest) |
+| Android | `MissionImpossible.apk` from the [latest release](https://github.com/mahinjaman/Mission-Impossible/releases/latest) |
+| Linux | `MissionImpossible.AppImage` from the [latest release](https://github.com/mahinjaman/Mission-Impossible/releases/latest) |
+| iPhone / iPad | open the web link in Safari → Share → Add to Home Screen |
+
+The **GET PC APP / GET ANDROID APP** button on the main menu downloads the right
+file for the device (it hides itself inside the installed apps).
 
 ## The random trap matrix
 
@@ -46,6 +58,23 @@ Deep link: `?debug=1&mission=12&seed=123`. Force touch controls on desktop: `?to
 
 Regenerate the app icons: `node tools/icons.mjs`.
 
+## Apps and hosting
+
+- **Website:** every push to `main` runs the smoke test + a solver check and
+  deploys to GitHub Pages (`.github/workflows/pages.yml`). One-time setup:
+  repo Settings → Pages → Source: *GitHub Actions*.
+- **Apps:** push a version tag and GitHub builds the Windows installer, Android
+  APK and Linux AppImage and publishes them as a Release
+  (`.github/workflows/release.yml`):
+  ```sh
+  git tag v1.0.1
+  git push origin v1.0.1
+  ```
+- **Local builds:** `npm install`, then `npm run desktop` (run the desktop app),
+  `npm run dist:win` (installer in `release/`), `npm test` (smoke + solver).
+- **Android locally:** needs Android Studio: `npx cap add android`,
+  `npm run android:sync`, `npx cap open android`.
+
 ## Controls
 
 | Action | Keyboard | Touch |
@@ -78,5 +107,8 @@ Regenerate the app icons: `node tools/icons.mjs`.
 | `input.js` | keyboard + touch input |
 | `audio.js` | synthesized SFX and adaptive procedural music |
 | `storage.js` | save data (localStorage) |
+| `install.js` | "get the app" button: download links / PWA install |
 
 `sw.js` is a network-first service worker (bump `VERSION` when files change).
+`desktop/main.cjs` is the Electron entry point; `capacitor.config.json` the
+Android wrapper; `tools/build-web.mjs` copies the playable files into `dist/`.

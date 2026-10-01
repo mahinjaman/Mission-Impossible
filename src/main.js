@@ -16,6 +16,7 @@ import { Camera, Particles, WorldRenderer, VIEW_W, VIEW_H } from './render.js';
 import { PostFX } from './fx.js';
 import { Hud } from './hud.js';
 import * as UI from './ui.js';
+import { initInstall, promptInstall } from './install.js';
 
 const DEATH_FRAMES = 42;     // glitch + "recalibrating" before the new matrix appears
 const DEATH_SKIP = 14;       // a jump press after this many frames skips the rest
@@ -64,6 +65,7 @@ class App {
     if (isTouchDevice()) this.input.bindTouch(this.touchUI, () => this.pause());
     this.introT = 0;
     this.setState('intro');       // opening credit, then the HQ menu
+    initInstall(() => this.refreshMenu());
 
     const unlock = () => this.sfx.unlock();
     window.addEventListener('keydown', unlock);
@@ -96,6 +98,14 @@ class App {
 
   endIntro() {
     if (this.state === 'intro') this.setState('menu', UI.buildMainMenu(this));
+  }
+
+  /** Rebuild the main menu in place (install availability changed), keeping the selection. */
+  refreshMenu() {
+    if (this.state !== 'menu') return;
+    const sel = this.screen.sel;
+    this.screen = UI.buildMainMenu(this);
+    this.screen.sel = Math.min(sel, this.screen.items.length - 1);
   }
 
   toast(text) { this.toastMsg = { text, t: 150 }; }
@@ -256,6 +266,7 @@ class App {
         this.screen.sel = sel;
         break;
       }
+      case 'install': promptInstall().then(msg => { if (msg) this.toast(msg); }); break;
       case 'accept': this.acceptBriefing(); break;
       case 'resume': this.setState('play'); break;
       case 'retry': this.abortAttempt(); break;

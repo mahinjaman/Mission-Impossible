@@ -3,9 +3,70 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Spy troll-platformer where every attempt generates a brand-new trap matrix.",
+  "description": "Mission Impossible - a spy troll-platformer by Mahin Jaman. Every attempt generates a brand-new trap matrix.",
   "scripts": {
     "start": "node tools/serve.mjs",
-    "fuzz": "node tools/fuzz.mjs"
+    "fuzz": "node tools/fuzz.mjs",
+    "test": "node tools/render-smoke.mjs 120 && node tools/fuzz.mjs --missions 1-12 --seeds 3 --replay",
+    "build:web": "node tools/build-web.mjs",
+    "desktop": "node tools/build-web.mjs && electron .",
+    "dist:win": "node tools/build-web.mjs && electron-builder --win --publish never",
+    "dist:mac": "node tools/build-web.mjs && electron-builder --mac --publish never",
+    "dist:linux": "node tools/build-web.mjs && electron-builder --linux --publish never",
+    "android:sync": "node tools/build-web.mjs && npx cap sync android"
+  },
+  "main": "desktop/main.cjs",
+  "author": "Mahin Jaman",
+  "homepage": "https://github.com/mahinjaman/Mission-Impossible",
+  "build": {
+    "appId": "com.mahinjaman.missionimpossible",
+    "productName": "Mission Impossible",
+    "copyright": "© 2026 Mahin Jaman",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "desktop/**",
+      "dist/**",
+      "package.json"
+    ],
+    "icon": "icons/icon-512.png",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "artifactName": "MissionImpossible-Setup.exe",
+      "shortcutName": "Mission Impossible"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.games",
+      "artifactName": "MissionImpossible.dmg"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Game",
+      "artifactName": "MissionImpossible.AppImage"
+    }
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "electron": "^44.5.0",
+    "electron-builder": "^26.15.3"
   }
 }

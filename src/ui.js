@@ -10,6 +10,7 @@
 
 import { FONT, C, themeFor, rgba, fmtTime } from './theme.js';
 import { missionIdentity } from './rng.js';
+import { isInstalled, installLabel } from './install.js';
 
 export const VW = 960, VH = 544;
 const TAU = Math.PI * 2;
@@ -668,6 +669,8 @@ export function buildMainMenu(app) {
   [['sound', 'SOUND'], ['music', 'MUSIC'], ['fx', 'EFFECTS']].forEach(([key, label], i) => {
     items.push({ kind: 'chip', x: X + i * 136, y: 408, w: 128, h: 40, action: 'toggle', key, label, on: !!save[key] });
   });
+  // desktop / mobile app download, top-right in the status bar (last, so toggle indices stay stable)
+  if (!isInstalled()) items.push({ kind: 'install', x: VW - 214, y: 14, w: 190, h: 26, action: 'install', label: installLabel() });
   return { items, sel: 0, back: null, kind: 'menu' };
 }
 
@@ -693,6 +696,22 @@ function drawCmdItem(ctx, it, sel, th, frame, age) {
     ctx.fillRect(x + 6, cyL - 14, 9, 16);
   }
   if (it.note) txt(ctx, it.note, it.x + 36, y + 37, 10, sel ? rgba(C.text, 0.6) : rgba(C.dim, 0.55));
+}
+
+function drawInstall(ctx, it, sel, th, frame) {
+  ctx.fillStyle = sel ? th.accent : 'rgba(4,8,15,0.85)';
+  ctx.fillRect(it.x, it.y, it.w, it.h);
+  ctx.strokeStyle = th.accent; ctx.lineWidth = 1;
+  ctx.strokeRect(it.x + 0.5, it.y + 0.5, it.w - 1, it.h - 1);
+  // download glyph
+  const gx = it.x + 16, gy = it.y + it.h / 2, bob = sel ? Math.sin(frame * 0.2) * 1.5 : 0;
+  ctx.strokeStyle = sel ? C.bg0 : th.accent; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(gx, gy - 7 + bob); ctx.lineTo(gx, gy + 3 + bob);
+  ctx.moveTo(gx - 4, gy - 1 + bob); ctx.lineTo(gx, gy + 3 + bob); ctx.lineTo(gx + 4, gy - 1 + bob);
+  ctx.moveTo(gx - 6, gy + 7); ctx.lineTo(gx + 6, gy + 7);
+  ctx.stroke();
+  txt(ctx, it.label, it.x + it.w / 2 + 10, it.y + 17, 12, sel ? C.bg0 : C.text, 'center', 'bold');
 }
 
 function drawChip(ctx, it, sel, th) {
@@ -930,7 +949,7 @@ export function drawMainMenu(ctx, app, screen, frame) {
   const th = themeFor(hi);
   const target = ident(hi);
   backdrop(ctx, th, frame);
-  topBar(ctx, th, frame, `IMF-NET · NODE ${pad3((hi * 37) % 997)} · ENCRYPTED`);
+  topBar(ctx, th, frame, screen.items.some(it => it.kind === 'install') ? '' : `IMF-NET · NODE ${pad3((hi * 37) % 997)} · ENCRYPTED`);
 
   // ---------------------------------------------------------------- globe
   const cx = 712, cy = 280, R = 168;
@@ -986,6 +1005,7 @@ export function drawMainMenu(ctx, app, screen, frame) {
   const b = selFrame(screen);
   screen.items.forEach((it, i) => {
     if (it.kind === 'chip') drawChip(ctx, it, i === screen.sel, th);
+    else if (it.kind === 'install') drawInstall(ctx, it, i === screen.sel, th, frame);
     else drawCmdItem(ctx, it, i === screen.sel, th, frame, age);
   });
   if (b) {
