@@ -1,0 +1,11 @@
+{
+  "name": "mission-impossible",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Spy troll-platformer where every attempt generates a brand-new trap matrix.",
+  "scripts": {
+    "start": "node tools/serve.mjs",
+    "fuzz": "node tools/fuzz.mjs"
+  }
+}

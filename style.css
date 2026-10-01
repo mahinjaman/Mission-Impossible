@@ -1,0 +1,179 @@
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #03050a;
+  overflow: hidden;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* subtle vignette around the play field */
+body {
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(18, 40, 70, 0.35) 0%, rgba(3, 5, 10, 0) 60%),
+    radial-gradient(ellipse at 50% 50%, #050913 0%, #03050a 55%, #010205 100%);
+}
+
+#wrap {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#game {
+  display: block;
+  background: #03050a;
+  outline: none;
+  box-shadow:
+    0 0 0 1px rgba(41, 231, 255, 0.16),
+    0 0 26px rgba(41, 231, 255, 0.10),
+    0 0 90px rgba(0, 0, 0, 0.85);
+}
+
+noscript {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #e8f4ff;
+  font: 16px Consolas, Menlo, monospace;
+}
+
+/* ---- touch controls ---- */
+#touch {
+  --size: clamp(62px, 16vmin, 92px);
+  --edge: max(16px, env(safe-area-inset-left), env(safe-area-inset-right));
+  --low: max(16px, env(safe-area-inset-bottom));
+  --neon: #29e7ff;
+  --teal: #2df0d0;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+#touch.hidden { display: none; }
+
+#touch .tbtn,
+#touch .dpad {
+  position: fixed;
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  color: #c9f6ff;
+  background: linear-gradient(160deg, rgba(20, 38, 62, 0.58), rgba(4, 8, 16, 0.66));
+  border: 1.5px solid rgba(41, 231, 255, 0.42);
+  box-shadow:
+    0 0 14px rgba(41, 231, 255, 0.18),
+    0 6px 18px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    inset 0 0 12px rgba(41, 231, 255, 0.08);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  transition: transform 0.06s ease-out, background 0.08s, border-color 0.08s, box-shadow 0.08s, color 0.08s;
+}
+#touch button { font: inherit; padding: 0; margin: 0; outline: none; }
+#touch svg { width: 46%; height: 46%; fill: currentColor; pointer-events: none; }
+#touch span {
+  pointer-events: none;
+  opacity: 0.75;
+  font: bold 10px Consolas, Menlo, monospace;
+  letter-spacing: 2px;
+}
+
+/* jump: big round button, bottom-left (left thumb) */
+#touch .jump {
+  left: var(--edge);
+  bottom: var(--low);
+  width: calc(var(--size) * 1.25);
+  height: calc(var(--size) * 1.25);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+#touch .jump svg { width: 40%; height: 40%; }
+
+/* scan: smaller teal button, up and to the right of jump */
+#touch .scan {
+  left: calc(var(--edge) + var(--size) * 1.05);
+  bottom: calc(var(--low) + var(--size) * 1.2);
+  width: calc(var(--size) * 0.9);
+  height: calc(var(--size) * 0.9);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  color: var(--teal);
+  border-color: rgba(45, 240, 208, 0.55);
+  box-shadow:
+    0 0 16px rgba(45, 240, 208, 0.22),
+    0 6px 18px rgba(0, 0, 0, 0.55),
+    inset 0 0 14px rgba(45, 240, 208, 0.10);
+}
+#touch .scan svg { width: 48%; height: 48%; }
+#touch .scan span { font-size: 9px; letter-spacing: 1.5px; }
+
+/* left/right: one pill-shaped pad, bottom-right (right thumb slides across) */
+#touch .dpad {
+  right: var(--edge);
+  bottom: var(--low);
+  width: calc(var(--size) * 2.3);
+  height: var(--size);
+  border-radius: calc(var(--size) / 2);
+  display: flex;
+  overflow: hidden;
+}
+#touch .dpad .half {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.08s, color 0.08s;
+}
+#touch .dpad .half + .half { border-left: 1px solid rgba(41, 231, 255, 0.22); }
+
+/* pause: small, top-right */
+#touch .pause {
+  top: max(10px, env(safe-area-inset-top));
+  right: var(--edge);
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+}
+#touch .pause svg { width: 52%; height: 52%; }
+
+/* pressed states */
+#touch .tbtn.on,
+#touch .dpad .half.on {
+  color: #03050a;
+  background: linear-gradient(160deg, #8ff6ff, #29c4ff);
+}
+#touch .tbtn.on {
+  transform: scale(0.93);
+  border-color: #b8fbff;
+  box-shadow: 0 0 26px rgba(41, 231, 255, 0.65), inset 0 0 10px rgba(255, 255, 255, 0.35);
+}
+#touch .scan.on {
+  background: linear-gradient(160deg, #a2fff0, #2df0d0);
+  border-color: #c8fff6;
+  box-shadow: 0 0 26px rgba(45, 240, 208, 0.7), inset 0 0 10px rgba(255, 255, 255, 0.35);
+}
+#touch .dpad.on { border-color: #b8fbff; box-shadow: 0 0 22px rgba(41, 231, 255, 0.45); }
+
+@media (prefers-reduced-motion: reduce) {
+  #touch .tbtn, #touch .dpad { transition: none; }
+}

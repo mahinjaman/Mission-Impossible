@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#03050a">
+  <meta name="description" content="Mission Impossible: a spy troll-platformer where every attempt generates a brand-new trap matrix.">
+  <title>Mission Impossible</title>
+  <meta name="author" content="Mahin Jaman">
+  <meta name="description" content="Mission Impossible - a spy troll-platformer by Mahin Jaman. Every attempt generates a brand-new trap matrix.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mission Imp.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="wrap">
+    <canvas id="game" width="960" height="544" aria-label="Mission Impossible game"></canvas>
+  </main>
+
+  <!-- On-screen controls, shown automatically on touch devices while playing.
+       Jump sits under the left thumb with Scan just above it; the right thumb
+       slides across one left/right pad (no need to lift to change direction). -->
+  <div id="touch" class="hidden">
+    <button data-k="jump" class="tbtn jump" aria-label="Jump">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5l7.5 8.5h-4.75v6.5h-5.5V13H4.5z"/></svg>
+      <span>JUMP</span>
+    </button>
+    <button data-k="scan" class="tbtn scan" aria-label="Scan for traps">
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="radar">
+        <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.7"/>
+        <path d="M12 12L12 3A9 9 0 0 1 19.8 7.5z" fill="currentColor" opacity="0.45"/>
+        <path d="M12 12L19.8 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <circle cx="15.6" cy="15" r="1.4" fill="currentColor"/>
+      </svg>
+      <span>SCAN</span>
+    </button>
+    <div data-k="dpad" class="dpad" aria-label="Move left or right">
+      <div class="half" data-dir="left">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5L7.5 12l8 7.5z"/></svg>
+      </div>
+      <div class="half" data-dir="right">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 4.5l8 7.5-8 7.5z"/></svg>
+      </div>
+    </div>
+    <button data-k="pause" class="tbtn pause" aria-label="Pause">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>
+    </button>
+  </div>
+
+  <noscript>Mission Impossible needs JavaScript.</noscript>
+  <script type="module" src="src/main.js"></script>
+  <script>
+    // Offline support (installed PWA). Only over http(s); never from file://.
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+      addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+    }
+  </script>
+</body>
+</html>

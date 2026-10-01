@@ -1,0 +1,86 @@
+<!doctype html>
+<!-- Promo teaser poster (1080x1080). Serve the project root and open
+     /tools/teaser.html?v=1 (redacted teaser) or ?v=2 (countdown variant). -->
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#000}canvas{display:block}</style></head>
+<body><canvas id="c" width="1080" height="1080"></canvas>
+<script type="module">
+import { C, themeFor, rgba } from '../src/theme.js';
+import { spaced, txt, drawFingerprint, drawFuse, brackets, setFont } from '../src/ui.js';
+
+const v = new URLSearchParams(location.search).get('v') ?? '1';
+const ctx = document.getElementById('c').getContext('2d');
+const W = 1080, H = 1080, th = themeFor(1), acc = th.accent;
+const frame = 777;
+
+// background: black, dot grid, accent glow, vignette
+ctx.fillStyle = '#010205'; ctx.fillRect(0, 0, W, H);
+ctx.fillStyle = rgba(acc, 0.07);
+ctx.beginPath();
+for (let y = 14; y < H; y += 27) for (let x = 14; x < W; x += 27) ctx.rect(x, y, 1.2, 1.2);
+ctx.fill();
+let g = ctx.createRadialGradient(W / 2, 470, 30, W / 2, 470, 620);
+g.addColorStop(0, rgba(acc, 0.13)); g.addColorStop(1, 'rgba(0,0,0,0)');
+ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+brackets(ctx, 26, 26, W - 52, H - 52, 34, rgba(acc, 0.55), 2);
+
+// top bar
+ctx.fillStyle = C.danger; ctx.beginPath(); ctx.arc(66, 78, 7, 0, Math.PI * 2); ctx.fill();
+txt(ctx, 'REC', 82, 85, 18, C.danger, 'left', 'bold');
+txt(ctx, 'CLASSIFIED TRANSMISSION', 140, 85, 18, C.dim, 'left', 'bold');
+txt(ctx, 'IMF-NET // EYES ONLY', W - 60, 85, 18, C.dim, 'right', 'bold');
+ctx.fillStyle = rgba(acc, 0.25); ctx.fillRect(56, 104, W - 112, 1.5);
+
+// title: MISSION + redacted second word with letters glitching through
+spaced(ctx, 'MISSION', W / 2, 330, 120, C.text, 14, 'center', 'bold');
+const word = 'IMPOSSIBLE', size = 104;
+setFont(ctx, size, 'bold');
+const cw = ctx.measureText('M').width + 10, x0 = W / 2 - (cw * word.length - 10) / 2, by = 470;
+const peek = v === '2' ? new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) : new Set([0, 2, 4, 7, 9]);
+for (let i = 0; i < word.length; i++) {
+  const x = x0 + i * cw;
+  if (peek.has(i)) {
+    setFont(ctx, size, 'bold'); ctx.textAlign = 'left';
+    ctx.fillStyle = 'rgba(255,46,77,0.7)'; ctx.fillText(word[i], x - 4, by);
+    ctx.fillStyle = rgba(acc, 0.7); ctx.fillText(word[i], x + 4, by);
+    ctx.shadowColor = acc; ctx.shadowBlur = 24;
+    ctx.fillStyle = acc; ctx.fillText(word[i], x, by);
+    ctx.shadowBlur = 0;
+  } else {
+    ctx.fillStyle = '#000'; ctx.fillRect(x - 2, by - 80, cw - 6, 92);
+    ctx.strokeStyle = rgba(C.danger, 0.55); ctx.lineWidth = 1.5; ctx.strokeRect(x - 2.5, by - 80.5, cw - 5, 93);
+  }
+}
+if (v !== '2') txt(ctx, 'REDACTED', x0 + cw * 1.4, by - 92, 16, C.danger, 'center', 'bold');
+
+// tagline + matrix line
+spaced(ctx, 'EVERY ATTEMPT. A NEW TRAP.', W / 2, 560, 26, C.text, 5, 'center', 'bold');
+const code = v === '2' ? '7F3A-91C2' : '????-????';
+txt(ctx, `TRAP MATRIX #${code}  ·  RANDOMIZED`, W / 2 - 40, 612, 20, C.warn, 'center', 'bold');
+drawFingerprint(ctx, v === '2' ? code : 'A5C3-9E17', W / 2 + 230, 596, 3, C.warn, rgba(C.warn, 0.3));
+
+// creator line with a lit fuse spark
+const half = 330, ly = 700;
+ctx.fillStyle = rgba(acc, 0.85); ctx.fillRect(W / 2 - half, ly, half * 2 * 0.62, 2);
+ctx.fillStyle = rgba(acc, 0.25); ctx.fillRect(W / 2 - half, ly, half * 2, 1);
+const sx = W / 2 - half + half * 2 * 0.62;
+g = ctx.createRadialGradient(sx, ly, 0, sx, ly, 40);
+g.addColorStop(0, 'rgba(255,255,255,0.95)'); g.addColorStop(0.25, rgba(acc, 0.6)); g.addColorStop(1, rgba(acc, 0));
+ctx.fillStyle = g; ctx.fillRect(sx - 40, ly - 40, 80, 80);
+spaced(ctx, 'A GAME BY', W / 2, 670, 18, C.dim, 9, 'center', 'bold');
+ctx.shadowColor = acc; ctx.shadowBlur = 18;
+spaced(ctx, 'MAHIN JAMAN', W / 2, 760, 44, C.text, 12, 'center', 'bold');
+ctx.shadowBlur = 0;
+
+// coming soon
+spaced(ctx, v === '2' ? 'LAUNCHING SOON' : 'COMING SOON', W / 2, 870, 40, acc, 16, 'center', 'bold');
+txt(ctx, v === '2' ? 'ACCEPT THE MISSION' : 'RELEASE DATE: ██.██.2026', W / 2, 912, 20, C.dim, 'center', 'bold');
+
+// footer fuse
+drawFuse(ctx, 70, W - 70, 990, 0.35, frame, { lw: 3 });
+txt(ctx, 'THIS MESSAGE WILL SELF-DESTRUCT', W / 2, 1030, 17, rgba(C.warn, 0.85), 'center', 'bold');
+
+// scanlines
+ctx.fillStyle = 'rgba(0,0,0,0.22)';
+for (let y = 0; y < H; y += 3) ctx.fillRect(0, y, W, 1);
+document.title = 'ready';
+</script></body></html>
